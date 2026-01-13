@@ -3,9 +3,9 @@ from flask import Flask
 app = Flask(__name__)
 
 # App metadata
-APP_NAME = "My Flask App"
+APP_NAME = "Movie Archiver"
 APP_VERSION = "1.0.0"
-APP_DESCRIPTION = "A basic Flask application"
+APP_DESCRIPTION = "A web application that archives and reccomends movies"
 
 @app.route("/")
 def home():
