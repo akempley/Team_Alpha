@@ -5,13 +5,12 @@
 
 ---
 
-## 📋 Project Overview
 
-A Flask web application for storing and viewing movie recommendations. Users can add, browse, and search for movies. 
+## Project Overview
+A Flask-based web application for organizing and managing movie information. This application allows users to catalog films with basic details and share simple ratings.
 
-## MVP
-
-The Movie archive project MVP will be a streamlined, crowdsourced platform dedicated to cataloging films. Its core function allows users to search movies and be able to contribute clips of must see movies, including titles, release years, and genres. A central feature is the community-driven rating system, where users can score each film on a simple scale. Furthermore, the platform will enable the submission and display of user-written reviews for every movie entry. To visually define each title, the database will support the upload and curation of official and fan-submitted images. Ultimately, this MVP establishes the essential foundation for a community-built film resource centered on shared knowledge and opinion.
+## MVP Description
+Movie Archive solves the problem of keeping track of movies you've watched and want to watch. The intended user is any movie enthusiast who wants to maintain a personal movie collection. The primary action users can take is adding movies to their personal archive with basic information and assigning a simple rating. The MVP will allow viewing the movie list, adding new entries, and filtering by genre or rating - all without user accounts or complex features.
 ---
 
 ## 👥 Team Members
@@ -28,7 +27,7 @@ The Movie archive project MVP will be a streamlined, crowdsourced platform dedic
 
 ## 🛠️ Technologies Used
 
-- Python, HTML/CSS, Git, VS Code
+- Python, HTML/CSS, Git, Github, VS Code
 
 ---
 
