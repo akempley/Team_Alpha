@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
 import hashlib
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = '4bfd33473e4141b0533378fad588b6294409464d93d39810'
+UPLOAD_FOLDER = 'flask_app/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 def init_db():
     conn = sqlite3.connect('users.db')
@@ -103,6 +108,27 @@ def dashboard():
     
     return render_template('dashboard.html', 
                           username=session.get('username'))
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return "No file part"
+
+        file = request.files['file']
+
+        if file.filename == '':
+            return "No selected file"
+
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        return redirect('/dashboard')
+
+    return render_template('upload.html')
 
 @app.route('/logout')
 def logout():
