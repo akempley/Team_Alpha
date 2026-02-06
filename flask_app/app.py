@@ -1,15 +1,94 @@
-from flask import Flask
+from flask import Flask, render_template, request, redirect, session
+import sqlite3
+import hashlib
 
 app = Flask(__name__)
+app.secret_key = '4bfd33473e4141b0533378fad588b6294409464d93d39810'
 
-# App metadata
-APP_NAME = "Movie Archiver"
-APP_VERSION = "1.0.0"
-APP_DESCRIPTION = "A web application that archives and recommends movies"
+def init_db():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-@app.route("/")
+def get_db_connection():
+    conn = sqlite3.connect('users.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+@app.route('/')
 def home():
-    return "Hello Team Alpha!"
+    return render_template('home.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if not username or not password:
+            return "Username and password required!"
+        
+        hashed_password = hash_password(password)
+        
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)',
+                        (username, hashed_password))
+            conn.commit()
+            return redirect('/login')
+        except sqlite3.IntegrityError:
+            return "Username already exists!"
+        finally:
+            conn.close()
+    
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        hashed_password = hash_password(password)
+        
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?',
+                           (username, hashed_password)).fetchone()
+        conn.close()
+        
+        if user:
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            return redirect('/dashboard')
+        else:
+            return "Invalid username or password!"
+    
+    return render_template('login.html')
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect('/login')
+    
+    return render_template('dashboard.html', 
+                          username=session.get('username'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    init_db()
+    app.run(debug=True, host='0.0.0.0', port=5001)
