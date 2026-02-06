@@ -3,12 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
+    <title>Homepage for Team Alpha's Movie Archive</title>
 </head>
+
 <body>
     <h1>Welcome!</h1>
-    <p>
-        <a href="/login">Login</a> or <a href="/register">Register</a>
-    </p>
+
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li>Genres
+                <!-- genre dropout starts here -->
+                <ul class="dropdown">
+                    <li><a href="/action">Action</a></li>
+                    <li><a href="/drama">Drama</a></li>
+                    <li><a href="/comedy">Comedy</a></li>
+                    <li><a href="/scifi">Science Fiction</a></li>
+                    <li><a href="/horror">Horror</a></li>
+                </ul>
+                </li>
+                <!-- genre dropdown ends here -->
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register">Register</a></li>
+        </ul>
+    </nav>
 </body>
 </html>
