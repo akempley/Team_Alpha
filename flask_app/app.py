@@ -3,12 +3,17 @@ import sqlite3
 import hashlib
 import os
 from werkzeug.utils import secure_filename
+import requests
+from dotenv import load_dotenv
+from services import tmdb
 
+load_dotenv()
 app = Flask(__name__)
 app.secret_key = '4bfd33473e4141b0533378fad588b6294409464d93d39810'
 UPLOAD_FOLDER = 'flask_app/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
+app.config['TMDB_API_KEY'] = os.getenv('TMDB_API_KEY')
+print("API Key loaded:", app.config['TMDB_API_KEY'])
 
 def init_db():
     conn = sqlite3.connect('users.db')
@@ -18,6 +23,18 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            movie_id INTEGER NOT NULL,
+            rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+            review_text TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            UNIQUE(user_id, movie_id)
         )
     ''')
     conn.commit()
@@ -33,7 +50,13 @@ def hash_password(password):
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    genres = tmdb.get_genres()[:5]  
+    genre_movies = {}
+    for genre in genres:
+        movies = tmdb.get_movies_by_genre(genre['id'])[:10]  
+        genre_movies[genre['name']] = movies
+    print(">>> genre_movies built:", genre_movies.keys())  # debu    
+    return render_template('home.html', genre_movies=genre_movies)
 
 @app.route('/action')
 def action():
@@ -134,6 +157,65 @@ def upload():
 def logout():
     session.clear()
     return redirect('/')
+
+@app.route('/movie/<int:movie_id>')
+def movie_detail(movie_id):
+    movie = tmdb.get_movie_details(movie_id)
+    trailer = tmdb.get_movie_trailer(movie_id)
+
+    conn = get_db_connection()
+    reviews = conn.execute('''
+        SELECT reviews.*, users.username 
+        FROM reviews 
+        JOIN users ON reviews.user_id = users.id 
+        WHERE movie_id = ? 
+        ORDER BY created_at DESC
+    ''', (movie_id,)).fetchall()
+    conn.close()
+
+    user_review = None
+    if 'user_id' in session:
+        conn = get_db_connection()
+        user_review = conn.execute('SELECT * FROM reviews WHERE user_id = ? AND movie_id = ?',
+                                   (session['user_id'], movie_id)).fetchone()
+        conn.close()
+
+    return render_template('movie_detail.html',
+                           movie=movie,
+                           trailer=trailer,
+                           reviews=reviews,
+                           user_review=user_review)
+
+@app.route('/movie/<int:movie_id>/review', methods=['POST'])
+def submit_review(movie_id):
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    rating = request.form.get('rating', type=int)
+    review_text = request.form.get('review_text', '')
+
+    if not rating or rating < 1 or rating > 5:
+        return "Rating must be between 1 and 5."
+
+    user_id = session['user_id']
+    conn = get_db_connection()
+    existing = conn.execute('SELECT id FROM reviews WHERE user_id = ? AND movie_id = ?',
+                            (user_id, movie_id)).fetchone()
+    if existing:
+        conn.execute('''
+            UPDATE reviews 
+            SET rating = ?, review_text = ?, created_at = CURRENT_TIMESTAMP 
+            WHERE user_id = ? AND movie_id = ?
+        ''', (rating, review_text, user_id, movie_id))
+    else:
+        conn.execute('''
+            INSERT INTO reviews (user_id, movie_id, rating, review_text)
+            VALUES (?, ?, ?, ?)
+        ''', (user_id, movie_id, rating, review_text))
+    conn.commit()
+    conn.close()
+
+    return redirect(f'/movie/{movie_id}')
 
 if __name__ == '__main__':
     init_db()
