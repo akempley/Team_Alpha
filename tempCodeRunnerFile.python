@@ -1,0 +1,172 @@
+events_list = [
+    {
+        "id": 101,
+        "name": "Sample Event",
+        "type": "Signing",
+        "date": "2026-03-10",
+        "time": "15:00",
+        "attendees": []
+    }
+]
+
+def add_event(events_list):
+    print("\n--- Add Event ---")
+
+    try:
+        event_id = int(input("Enter Event ID: "))
+    except ValueError:
+        print("Invalid ID. Must be an integer.")
+        return
+
+
+    for event in events_list:
+        if event["id"] == event_id:
+            print("Error: Event ID already exists.")
+            return
+
+    name = input("Enter Event Name: ")
+    event_type = input("Enter Event Type: ")
+    date = input("Enter Event Date (YYYY-MM-DD): ")
+    time = input("Enter Event Time (HH:MM): ")
+
+    new_event = {
+        "id": event_id,
+        "name": name,
+        "type": event_type,
+        "date": date,
+        "time": time,
+        "attendees": []
+    }
+
+    events_list.append(new_event)
+    print("Event added successfully!")
+
+
+
+def view_events(events_list):
+    print("\n--- View Events ---")
+
+    if len(events_list) == 0:
+        print("No events available.")
+        return
+
+    for event in events_list:
+        print(f"\nEvent ID: {event['id']}")
+        print(f"Event Name: {event['name']}")
+        print(f"Event Type: {event['type']}")
+        print(f"Date: {event['date']}")
+        print(f"Time: {event['time']}")
+        attendees = ", ".join(event["attendees"]) if event["attendees"] else "None"
+        print(f"Attendees: {attendees}")
+
+
+
+def update_event(events_list):
+    print("\n--- Update Event ---")
+
+    try:
+        event_id = int(input("Enter Event ID to update: "))
+    except ValueError:
+        print("Invalid ID.")
+        return
+
+    for event in events_list:
+        if event["id"] == event_id:
+            print("What would you like to update?")
+            print("1. Name")
+            print("2. Type")
+            print("3. Date")
+            print("4. Time")
+
+            choice = input("Enter choice: ")
+
+            if choice == "1":
+                event["name"] = input("Enter new name: ")
+            elif choice == "2":
+                event["type"] = input("Enter new type: ")
+            elif choice == "3":
+                event["date"] = input("Enter new date (YYYY-MM-DD): ")
+            elif choice == "4":
+                event["time"] = input("Enter new time (HH:MM): ")
+            else:
+                print("Invalid choice.")
+                return
+
+            print("Event updated successfully!")
+            return
+
+    print("Event not found.")
+
+
+
+def delete_event(events_list):
+    print("\n--- Delete Event ---")
+
+    try:
+        event_id = int(input("Enter Event ID to delete: "))
+    except ValueError:
+        print("Invalid ID.")
+        return
+
+    for event in events_list:
+        if event["id"] == event_id:
+            events_list.remove(event)
+            print("Event deleted.")
+            return
+
+    print("Event not found.")
+
+
+
+def add_attendee(events_list):
+    print("\n--- Add Attendee ---")
+
+    try:
+        event_id = int(input("Enter Event ID: "))
+    except ValueError:
+        print("Invalid ID.")
+        return
+
+    for event in events_list:
+        if event["id"] == event_id:
+            attendee = input("Enter Attendee Name: ")
+            event["attendees"].append(attendee)
+            print("Attendee added successfully!")
+            return
+
+    print("Event not found.")
+
+
+
+def main_menu():
+    while True:
+        print("\nWelcome to Sofia's Bookstore Event Manager!")
+        print("1. Add Event")
+        print("2. View Events")
+        print("3. Update Event")
+        print("4. Delete Event")
+        print("5. Add Attendee")
+        print("6. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            add_event(events_list)
+        elif choice == "2":
+            view_events(events_list)
+        elif choice == "3":
+            update_event(events_list)
+        elif choice == "4":
+            delete_event(events_list)
+        elif choice == "5":
+            add_attendee(events_list)
+        elif choice == "6":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Try again.")
+
+
+
+if __name__ == "__main__":
+    main_menu()
