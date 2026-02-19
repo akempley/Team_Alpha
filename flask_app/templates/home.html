@@ -1,14 +1,8 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage for Team Alpha's Movie Archive</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+﻿{% extends "base.html" %}
 
-<body>
-    <h1>Welcome!</h1>
+{% block title %}Homepage for Team Alpha's Movie Archive{% endblock %}
+
+{% block header %}
 
     <nav>
         <ul>
@@ -28,7 +22,10 @@
             <li><a href="/register">Register</a></li>
         </ul>
     </nav>
+{% endblock %}
 
+{% block content %}
+    <h1>Welcome!</h1>
     <h2>Top Movies by Genre</h2>
     {% for genre_name, movies in genre_movies.items() %}
         <div class="genre-section">
@@ -47,5 +44,4 @@
             </div>
         </div>
     {% endfor %}
-</body>
-</html>
+{% endblock %}
