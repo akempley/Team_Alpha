@@ -14,6 +14,33 @@
             <a href="/register"><button class="btn" style="margin-left: 10px;">Register</button></a>
         </div>
     {% endif %}
+
+    <div class="filter-nav" style="background: rgba(28, 28, 30, 0.95); border-bottom: 1px solid rgba(191, 90, 242, 0.3); padding: 8px 0; margin-top: 20px;">
+        <form action="{{ url_for('home') }}" method="GET" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: center; align-items: center; gap: 30px;">
+            <div style="display: flex; gap: 20px;">
+                <label style="font-size: 0.85rem; color: #e0e0e0; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" name="hide_gore" value="1" {% if request.args.get('hide_gore') %}checked{% endif %}> 🩸 Gore
+                </label>
+                <label style="font-size: 0.85rem; color: #e0e0e0; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" name="hide_extreme" value="1" {% if request.args.get('hide_extreme') %}checked{% endif %}> ⚠️ Extreme
+                </label>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="rating" style="font-size: 0.85rem; color: #e0e0e0;">Rating:</label>
+                <select name="rating" id="rating" style="background: #2c2c2e; color: white; border: 1px solid #444; border-radius: 4px; padding: 3px 8px; font-size: 0.85rem;">
+                    <option value="all">All</option>
+                    <option value="G">G</option>
+                    <option value="PG">PG</option>
+                    <option value="PG-13">PG-13</option>
+                    <option value="R">R</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn" style="padding: 4px 15px; font-size: 0.8rem; background: #bf5af2; border: none; border-radius: 4px; color: white;">Apply</button>
+            <a href="{{ url_for('home') }}" style="color: #888; text-decoration: none; font-size: 0.75rem;">Reset</a>
+        </form>
+    </div>
 {% endblock %}
 
 {% block content %}
