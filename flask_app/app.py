@@ -1,21 +1,30 @@
-from flask import Flask, render_template, request, redirect, session, url_for
 import sqlite3
 import hashlib
+from flask import Flask, render_template, request, redirect, session, url_for
 import os
 from werkzeug.utils import secure_filename
 import requests
 from dotenv import load_dotenv
 load_dotenv()
-                        
+from extensions import db
+from models import User, Movie
 
 from services import tmdb               
 
 app = Flask(__name__)
-app.secret_key = '4bfd33473e4141b0533378fad588b6294409464d93d39810'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
+app.config['TMDB_API_KEY'] = os.getenv('TMDB_API_KEY')
+
 UPLOAD_FOLDER = 'flask_app/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['TMDB_API_KEY'] = os.getenv('TMDB_API_KEY')
-print("API Key loaded:", app.config['TMDB_API_KEY'])
+
+if not app.secret_key:
+    print("WARNING: FLASK_SECRET_KEY not found in .env file!")
 
 @app.context_processor
 def inject_genres():
@@ -337,5 +346,25 @@ def post_comment():
     return redirect(url_for('home', offset=offset))
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all() 
     init_db()
     app.run(debug=True, host='0.0.0.0', port=5001)
+
+@app.route('/filter_movies')
+def filter_movies():
+    hide_gore = request.args.get('hide_gore')
+    hide_extreme = request.args.get('hide_extreme')
+    rating = request.args.get('rating')
+
+    query = Movie.query
+
+    if hide_gore:
+        query = query.filter(Movie.has_gore == False)
+    if hide_extreme:
+        query = query.filter(Movie.has_extreme == False)
+    if rating and rating != 'all':
+        query = query.filter(Movie.rating == rating)
+
+    movies = query.all()
+    return render_template('movie_archive.html', movies=movies)
