@@ -82,17 +82,50 @@ def hash_password(password):
 @app.route('/')
 def home():
     offset = request.args.get('offset', 0, type=int)
+    hide_gore = request.args.get('hide_gore') == '1'
+    hide_extreme = request.args.get('hide_extreme') == '1'
+    target_rating = request.args.get('rating', 'all')
+
     all_movies = tmdb.get_popular_movies()
-    total_movies = len(all_movies)
+    filtered_movies = []
 
-    movies_per_page = 3
-    start = offset
-    end = start + movies_per_page
-    movies_to_show = all_movies[start:end]
+    for movie in all_movies:
+        # Get genre IDs (Dictionaries use .get, Objects use getattr)
+        if isinstance(movie, dict):
+            movie_genres = movie.get('genre_ids', [])
+            is_adult = movie.get('adult', False)
+        else:
+            movie_genres = getattr(movie, 'genre_ids', [])
+            is_adult = getattr(movie, 'adult', False)
+        
+        # Convert IDs to strings to ensure the match works
+        str_genres = [str(g) for g in movie_genres]
+        keep_movie = True
+        
+        # 1. GORE FILTER (Horror is ID 27)
+        if hide_gore and '27' in str_genres:
+            keep_movie = False
+            
+        # 2. EXTREME FILTER (Thriller is 53, Crime is 80)
+        if hide_extreme and (is_adult or '53' in str_genres or '80' in str_genres):
+            keep_movie = False
+            
+        # 3. RATING G FILTER (Animation is 16, Family is 10751)
+        # Logic: If G is selected, HIDE anything that ISN'T Animation or Family
+        if target_rating == 'G':
+            if '16' not in str_genres and '10751' not in str_genres:
+                keep_movie = False
 
-    has_prev = offset > 0
-    has_next = end < total_movies
-    
+        if keep_movie:
+            filtered_movies.append(movie)
+
+    # Fallback so the screen isn't white if filters are too strict
+    display_list = filtered_movies if filtered_movies else all_movies
+
+    total_movies = len(display_list)
+    movies_to_show = display_list[offset : offset + 3]
+
+    # Your existing Chat/DB logic below
     conn = get_db_connection()
     comments = conn.execute('''
         SELECT global_comments.*, users.username
@@ -106,8 +139,8 @@ def home():
     return render_template('home.html',
                            movies=movies_to_show,
                            offset=offset,
-                           has_prev=has_prev,
-                           has_next=has_next,
+                           has_prev=offset > 0,
+                           has_next=(offset + 3) < total_movies,
                            comments=comments)
 
 @app.route('/contact', methods=['GET', 'POST'])
