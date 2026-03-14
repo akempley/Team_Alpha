@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 import requests
 from dotenv import load_dotenv
 load_dotenv()
+from flask_mail import Mail, Message
                         
 
 from services import tmdb               
@@ -16,6 +17,16 @@ UPLOAD_FOLDER = 'flask_app/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['TMDB_API_KEY'] = os.getenv('TMDB_API_KEY')
 print("API Key loaded:", app.config['TMDB_API_KEY'])
+
+# Email configuration
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME') 
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD') 
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
+
+mail = Mail(app)
 
 @app.context_processor
 def inject_genres():
@@ -108,6 +119,27 @@ def contact():
         email = request.form.get('email')
         gender = request.form.get('gender')
         comments = request.form.get('comments')
+
+        # build email message
+        msg = Message(
+            subject="New Contact Form Submission for Movie Database",
+            recipients=[app.config['MAIL_USERNAME']]
+        )
+
+        msg.body = f""" 
+A new contact form submission was received:
+
+Name: {name}
+Email: {email}
+Gender: {gender}
+
+Comments:
+{comments}
+"""
+        try:
+            mail.send(msg)
+        except Exception as e:
+                print("Email sending failed:", e)
 
         return redirect(url_for('thx'))
     
