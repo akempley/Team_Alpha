@@ -6,17 +6,24 @@ from werkzeug.utils import secure_filename
 import requests
 from dotenv import load_dotenv
 load_dotenv()
+
+# Email support (your branch)
+from flask_mail import Mail, Message
+
+# SQLAlchemy support (origin/main)
 from extensions import db
 from models import User, Movie
 
-from services import tmdb               
+from services import tmdb
 
 app = Flask(__name__)
 
+# SQLAlchemy config (origin/main)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
+# Secret key + TMDB
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 app.config['TMDB_API_KEY'] = os.getenv('TMDB_API_KEY')
 
@@ -25,6 +32,16 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 if not app.secret_key:
     print("WARNING: FLASK_SECRET_KEY not found in .env file!")
+
+# Email configuration (your branch)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
+
+mail = Mail(app)
 
 @app.context_processor
 def inject_genres():
@@ -117,6 +134,27 @@ def contact():
         email = request.form.get('email')
         gender = request.form.get('gender')
         comments = request.form.get('comments')
+
+        # build email message
+        msg = Message(
+            subject="New Contact Form Submission for Movie Database",
+            recipients=[app.config['MAIL_USERNAME']]
+        )
+
+        msg.body = f""" 
+A new contact form submission was received:
+
+Name: {name}
+Email: {email}
+Gender: {gender}
+
+Comments:
+{comments}
+"""
+        try:
+            mail.send(msg)
+        except Exception as e:
+                print("Email sending failed:", e)
 
         return redirect(url_for('thx'))
     
