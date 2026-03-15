@@ -1,2 +1,12 @@
+# Python cache files
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+
+# Environment variables
 .env
-users.db
+
+# Database files (optional)
+*.db
