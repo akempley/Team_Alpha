@@ -86,4 +86,47 @@
                     
                     <div style="flex: 1;">
                         <label for="age_rating">Content Rating</label>
-                        <select name="age_rating" style="width: 100%; background: #2c2c2e; color
+                        <select name="age_rating" style="width: 100%; background: #2c2c2e; color<option value="G">G - All Ages</option>
+                            <option value="PG">PG</option>
+                            <option value="PG-13">PG-13</option>
+                            <option value="R">R</option>
+                            <option value="NC-17">NC-17</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Review Content</label>
+                <textarea name="content" placeholder="What did you think?" required></textarea>
+
+                <div class="dashboard-actions">
+                    <button type="submit" class="btn">Submit Review</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="moments" class="dashboard-panel">
+            <h2>Premiere Moments</h2>
+            <p>Upload photos from your theater visits soon!</p>
+        </section>
+
+        <section id="community" class="dashboard-panel">
+            <h2>Community</h2>
+            <p>Connect with other movie fans here.</p>
+        </section>
+
+    </div>
+</div>
+
+<script>
+    function showPanel(panelId) {
+        // Hide all panels
+        document.querySelectorAll('.dashboard-panel').forEach(p => p.classList.remove('active-panel'));
+        // Show selected panel
+        document.getElementById(panelId).classList.add('active-panel');
+        // Update tab buttons
+        document.querySelectorAll('.dashboard-tab').forEach(t => t.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+    }
+</script>
+
+{% endblock %}
