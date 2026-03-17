@@ -187,6 +187,22 @@ def upload():
         return redirect(url_for('dashboard'))
     return render_template('upload.html')
 
+@app.route('/post_comment', methods=['POST'])
+def post_comment():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    
+    content = request.form.get('content')
+    offset = request.args.get('offset', 0) # Get the offset so we can stay on the same page
+    
+    conn = get_db_connection()
+    conn.execute('INSERT INTO global_comments (user_id, content) VALUES (?, ?)',
+                 (session['user_id'], content))
+    conn.commit()
+    conn.close()
+    
+    # This sends the user back to the home page exactly where they were
+    return redirect(url_for('home', offset=offset))
+
 # --- AUTH ---
 
 @app.route('/register', methods=['GET', 'POST'])
