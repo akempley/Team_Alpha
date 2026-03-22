@@ -67,6 +67,25 @@ def init_db():
 
 # --- MAIN ROUTES ---
 
+@app.route('/submit_review/<int:movie_id>', methods=['POST'])
+def submit_review(movie_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    rating = request.form.get('rating')
+    review_text = request.form.get('review_text')
+
+    conn = get_db_connection()
+    conn.execute('''
+        INSERT INTO reviews (user_id, movie_id, rating, review_text)
+        VALUES (?, ?, ?, ?)
+    ''', (session['user_id'], movie_id, rating, review_text))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('movie_detail', movie_id=movie_id))
+
+
 @app.route('/')
 def home():
     offset = request.args.get('offset', 0, type=int)
@@ -237,6 +256,13 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
+if __name__ == '__main__':
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+    init_db()
+    app.run(debug=True, host='0.0.0.0', port=5001)
+
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
